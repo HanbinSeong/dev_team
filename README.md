@@ -27,7 +27,7 @@
 
 본 시스템은 LangGraph 기반의 상태 그래프(State Graph) 구조로 동작합니다. 4개의 핵심 에이전트 노드가 순환하며 점진적 개선 과정을 거칩니다.
 
-<img src='https://drive.google.com/uc?id=1-H1d5umRSelM74cyk_oK8Crs8678utxx' style='width: 100%; height: auto;'>
+<img width="2816" height="1536" alt="Gemini_Generated_Image_n8wxtnn8wxtnn8wx" src="https://github.com/user-attachments/assets/ce2af858-8dea-4381-b0f7-2e1afad52eea" />
 
 1. PM Node (Analysis): 사용자의 요구사항을 분석하여 기술 스택, 파일 구조, 핵심 로직이 포함된 작업 지시서를 생성합니다. 기존 코드베이스가 존재하는 경우 이를 분석하여 변경 사항을 기획합니다.
 2. Developer Node (Implementation): PM의 지시서와 피드백을 바탕으로 코드를 작성합니다. 신규 생성뿐만 아니라 기존 파일의 수정 및 유지보수를 수행합니다.
