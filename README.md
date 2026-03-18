@@ -9,7 +9,7 @@
 ## Project Structure
 
 프로젝트의 디렉토리 구조는 에이전트의 역할과 상태 관리, 라우팅 로직을 명확히 분리하여 모듈화되어 있습니다.
-
+```
 .
 ├── agents/
 │   ├── pm.py           # 기획자: 요구사항 분석 및 작업 지시서(Markdown) 작성
@@ -21,12 +21,13 @@
 ├── main.py             # 시스템 진입점, LangGraph 워크플로우 조립 및 사용자 인터랙션 루프
 ├── requirements.txt    # 프로젝트 구동에 필요한 패키지 목록
 └── .env                # 환경 변수 (OpenAI API Key 등)
+```
 
 ## Architecture & Workflow
 
 본 시스템은 LangGraph 기반의 상태 그래프(State Graph) 구조로 동작합니다. 4개의 핵심 에이전트 노드가 순환하며 점진적 개선 과정을 거칩니다.
 
-![AI Development Team Agent Workflow](https://drive.google.com/file/d/1-H1d5umRSelM74cyk_oK8Crs8678utxx/view?usp=sharing)
+<img src='https://drive.google.com/uc?id=1-H1d5umRSelM74cyk_oK8Crs8678utxx' style='width: 100%; height: auto;'>
 
 1. PM Node (Analysis): 사용자의 요구사항을 분석하여 기술 스택, 파일 구조, 핵심 로직이 포함된 작업 지시서를 생성합니다. 기존 코드베이스가 존재하는 경우 이를 분석하여 변경 사항을 기획합니다.
 2. Developer Node (Implementation): PM의 지시서와 피드백을 바탕으로 코드를 작성합니다. 신규 생성뿐만 아니라 기존 파일의 수정 및 유지보수를 수행합니다.
@@ -39,20 +40,26 @@
 - LLM: OpenAI
 - Data Validation: Pydantic
 - Testing: pytest
-- Language Support: Python, Java, JavaScript/TypeScript (확장 중)
+- Language Support: Python, `Java, JavaScript/TypeScript (확장 예정)`
 
 ## Usage
 
 ### 1. Prerequisites
 프로젝트 루트 디렉토리에 .env 파일을 생성하고 OpenAI API 키를 입력합니다.
+```
 OPENAI_API_KEY=your_openai_api_key_here
+```
 
 ### 2. Install Dependencies
+```
 pip install -r requirements.txt
+```
 
 ### 3. Run the System
+```
 python main.py
-실행 후 작업 폴더명을 입력하고 개발 지시를 내리면, 해당 폴더 내에 소스 코드와 전체 작업 과정이 기록된 workflow_log.txt가 생성됩니다.
+```
+실행 후 작업 폴더명을 입력하고 개발 지시를 내리면, 해당 폴더 내에 소스 코드와 전체 작업 과정이 기록된 `workflow_log.txt`가 생성됩니다.
 
 ## Roadmap & Future Improvements
 
