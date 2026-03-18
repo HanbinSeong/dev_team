@@ -1,75 +1,78 @@
-# AI Development Agent Team
+# AI Development Team Agent
+
 본 프로젝트는 비동기적으로 동작하는 자율적인 AI 에이전트들로 구성된 소프트웨어 개발 파이프라인을 구축하는 것을 목적으로 합니다. 사용자의 요구사항 분석부터 코드 작성, 테스트, 그리고 최종 리뷰까지의 전 과정을 자동화하여 개발 업무의 효율성을 극대화합니다.
 
-# Project Structure
-프로젝트의 디렉토리 구조는 각 에이전트의 역할과 상태 관리, 라우팅 로직을 명확히 분리하여 모듈화되어 있습니다.
-```
+## Project Purpose
+
+전통적인 소프트웨어 개발 프로세스에서의 의사결정 및 구현 단계를 AI 에이전트 간의 협업 시스템으로 대체합니다. 각 에이전트는 독립적인 페르소나와 책임을 가지며, 단순한 코드 생성을 넘어 실행 결과를 바탕으로 오류를 스스로 수정하는 자가 치유(Self-Healing) 메커니즘을 통해 완성도 높은 결과물을 산출합니다.
+
+## Project Structure
+
+프로젝트의 디렉토리 구조는 에이전트의 역할과 상태 관리, 라우팅 로직을 명확히 분리하여 모듈화되어 있습니다.
+
 .
 ├── agents/
 │   ├── pm.py           # 기획자: 요구사항 분석 및 작업 지시서(Markdown) 작성
 │   ├── dev.py          # 개발자: 지시서를 기반으로 실제 소스 코드 및 파일 생성/수정
-│   ├── qa.py           # 테스터: 모킹(Mocking) 기반의 단위 테스트(pytest) 코드 작성 및 실행
+│   ├── qa.py           # 테스터: 단위 테스트(pytest 등) 코드 작성 및 실행
 │   └── supervisor.py   # 총괄감독: 코드 품질, 아키텍처, 기획 부합 여부 최종 리뷰 및 승인
 ├── routers.py          # 노드 간 조건부 전환(분기)을 제어하는 라우팅 로직
-├── state.py            # LangGraph에서 에이전트 간 공유되는 전역 상태(State) 데이터 구조 정의
+├── state.py            # LangGraph에서 공유되는 전역 상태(State) 데이터 구조 정의
 ├── main.py             # 시스템 진입점, LangGraph 워크플로우 조립 및 사용자 인터랙션 루프
-├── requirements.txt    # 프로젝트 구동에 필요한 파이썬 의존성 패키지 목록
-└── .env                # 환경 변수 (API Key 등)
-```
+├── requirements.txt    # 프로젝트 구동에 필요한 패키지 목록
+└── .env                # 환경 변수 (OpenAI API Key 등)
 
-# Architecture & Workflow
-본 시스템은 LangGraph 기반의 상태 그래프(State Graph) 구조로 동작합니다. 4개의 핵심 에이전트 노드가 순환하며 자가 치유(Self-Healing) 및 점진적 개선 과정을 거칩니다.
+## Architecture & Workflow
 
-1. **PM Node (기획 단계)**: 사용자의 자연어 요구사항을 입력받아 구체적인 기술 스택, 파일 구조, 핵심 로직이 포함된 작업 지시서를 생성합니다.
-2. **Dev Node (개발 단계)**: PM의 작업 지시서와 (반려 시) QA/Supervisor의 피드백을 분석하여, 지정된 로컬 워크스페이스에 실제 코드를 작성하고 저장합니다.
-3. **QA Node (검증 단계)**: 개발된 코드를 바탕으로 pytest 기반의 테스트 코드를 생성하고 서브프로세스로 실행합니다. 테스트 실패 시 에러 로그와 함께 Developer에게 코드를 반려합니다.
-4. **Supervisor Node (리뷰 단계)**: QA를 통과한 코드를 대상으로 코드 스타일, 비효율성, 요구사항 충족 여부를 최종 검토합니다. 기준 미달 시 구체적인 수정 방향과 함께 반려하며, 통과 시 워크플로우를 종료합니다.
+본 시스템은 LangGraph 기반의 상태 그래프(State Graph) 구조로 동작합니다. 4개의 핵심 에이전트 노드가 순환하며 점진적 개선 과정을 거칩니다.
 
-# Tech Stack
-- **Core Framework**: LangGraph, LangChain
-- **LLM**: OpenAI
-- **Data Validation & Parsing**: Pydantic
-- **Testing**: pytest
-- **Language**: Python 3.8+
+![AI Development Team Agent Workflow](https://drive.google.com/file/d/1-H1d5umRSelM74cyk_oK8Crs8678utxx/view?usp=sharing)
 
-# Usage
-1. Prerequisites프로젝트 루트 디렉토리에 .env 파일을 생성하고 시스템 구동에 필요한 API 키를 입력합니다.
-    ```
-    OPENAI_API_KEY=your_openai_api_key_here
-    ```
-2. Install Dependencies
-   가상환경을 활성화한 후, 필요한 패키지를 설치합니다.
-   ```
-   pip install -r requirements.txt
-   ```
-3. Run the System
-   main.py를 실행하여 CLI 환경에서 시스템을 시작합니다.
-   ```
-   python main.py
-   ```
-    1. 작업을 진행할 프로젝트의 디렉토리 이름을 입력합니다. (해당 폴더가 존재하지 않으면 자동으로 생성됩니다.)
-    2. 메뉴에서 `1. 작업지시`를 선택하고, 구현하고자 하는 프로그램의 요구사항을 자연어로 명확하게 입력합니다.
-    3. 작업이 완료되면 지정한 프로젝트 디렉토리 내에 생성된 소스 코드와 전체 작업 과정이 기록된 `workflow_log.txt` 파일을 확인할 수 있습니다.
+1. PM Node (Analysis): 사용자의 요구사항을 분석하여 기술 스택, 파일 구조, 핵심 로직이 포함된 작업 지시서를 생성합니다. 기존 코드베이스가 존재하는 경우 이를 분석하여 변경 사항을 기획합니다.
+2. Developer Node (Implementation): PM의 지시서와 피드백을 바탕으로 코드를 작성합니다. 신규 생성뿐만 아니라 기존 파일의 수정 및 유지보수를 수행합니다.
+3. QA Node (Validation): 작성된 코드를 바탕으로 테스트 코드를 자동 생성하고 실행합니다. 테스트 실패 시 상세 에러 로그를 Developer에게 전달하여 수정을 요구합니다(Self-Healing).
+4. Supervisor Node (Review): 최종 코드를 대상으로 스타일, 효율성, 요구사항 충족 여부를 검토합니다. 승인 시 워크플로우를 종료하며, 미달 시 수정 피드백과 함께 반려합니다.
 
-# Roadmap & Future Improvements
-본 프로젝트는 지속적인 고도화를 통해 완전한 형태의 자율형 AI 데브옵스(DevOps) 파이프라인으로 발전할 예정이며, 다음과 같은 개선 작업을 계획중입니다.
+## Tech Stack
 
-1. 에이전트 아키텍처 및 프롬프트 고도화
-   - **기존 코드베이스(Brown-field) 대응**: PM 및 Developer 에이전트가 새로운 프로젝트뿐만 아니라 기존에 작성된 코드베이스를 탐색하고 이해하여, 기존 로직과 충돌 없이 기능을 추가하거나 수정할 수 있도록 개선
-   - **PM 노드의 서브그래프(Sub-graph) 확장**: PM 에이전트를 단일 노드가 아닌 다단계 서브그래프로 분리하여, 기존 코드베이스 분석, 중복 내용 확인, MCP(Model Context Protocol)를 활용한 최적 알고리즘 및 논리 검색 등을 수행하도록 고도화
-   - **프롬프트 엔지니어링 및 페르소나 강화**: 각 에이전트의 프롬프트를 세분화하여 불필요한 반려(Ping-pong) 횟수 최소화
-2. 멀티 프레임워크 및 언어 지원 (Multi-Stack)
-   - **State 확장**: 에이전트가 작업 중인 기술 스택을 인지할 수 있도록 TeamState에 language 및 framework 항목 추가
-   - **다양한 환경 적용**: 현재 Python 중심의 환경에서 벗어나 Java(Spring Boot), React, TypeScript, Next.js 등 다양한 언어와 프레임워크 기반의 개발 환경에서도 최적의 코드를 생성하고 테스트할 수 있도록 에이전트 역량 확장
-3. 코드 품질 및 표준화
-   - **코드 스타일링 체계화**: 네이밍 컨벤션, Clean Code 원칙 등 정량적인 코드 작성 기준을 시스템 프롬프트에 내재화하여 산출물의 품질을 상향 평준화
-   - **정적 분석 및 보안 검사**: QA 노드에 각 언어별 린터(Linter) 및 보안 취약점 검사 도구를 연동하여 문법적 오류와 잠재적 위험을 사전 차단
-4. 인프라 통합 및 CI/CD
-   - **Docker 컨테이너 격리 환경 구축**: AI 에이전트 시스템을 도커 컨테이너 내부로 격리하고, 사용자의 로컬 코드베이스를 볼륨 마운트 방식으로 연결하여 안전하게 상호작용하도록 환경 구성
-   - **GitHub PR 자동화 연동**: LangGraph의 최종 검수(Supervisor 승인)가 완료되면, 완성된 코드와 작업 내역을 바탕으로 GitHub에 자동으로 브랜치를 생성하고 Pull Request(PR)를 작성하도록 연동
-5. 시스템 지능화 및 제어
-   - **Human-in-the-Loop (HITL) 도입**: 코드의 최종 병합이나 시스템 인프라에 접근하는 등의 주요 의사결정 단계에서 사용자의 승인이나 추가 피드백을 대기하는 절차를 마련하여 안전성 확보
-   - **Long-term Memory 및 RAG 적용**: 대규모 프로젝트 대응을 위해 전체 코드베이스와 과거 작업 히스토리를 벡터 데이터베이스에 색인하여 각 에이전트가 이전 컨텍스트를 유지하고 할루시네이션(Hallucination) 방지
+- Core Framework: LangGraph, LangChain
+- LLM: OpenAI
+- Data Validation: Pydantic
+- Testing: pytest
+- Language Support: Python, Java, JavaScript/TypeScript (확장 중)
 
-# License
+## Usage
+
+### 1. Prerequisites
+프로젝트 루트 디렉토리에 .env 파일을 생성하고 OpenAI API 키를 입력합니다.
+OPENAI_API_KEY=your_openai_api_key_here
+
+### 2. Install Dependencies
+pip install -r requirements.txt
+
+### 3. Run the System
+python main.py
+실행 후 작업 폴더명을 입력하고 개발 지시를 내리면, 해당 폴더 내에 소스 코드와 전체 작업 과정이 기록된 workflow_log.txt가 생성됩니다.
+
+## Roadmap & Future Improvements
+
+### 1. 에이전트 및 프롬프트 고도화
+- 기존 코드베이스(Brown-field) 대응: PM 및 Developer 에이전트가 기존 프로젝트를 탐색하고 이해하여 유지보수 작업을 수행하도록 개선.
+- PM 서브그래프 확장: PM 노드를 다단계 서브그래프로 분리하여 MCP 기반 지식 검색 및 아키텍처 설계 선행.
+- 코드 스타일링 체계화: 클린 코드 원칙 및 프로젝트별 네이밍 컨벤션을 시스템 프롬프트에 내재화.
+
+### 2. 멀티 스택 지원 (Multi-Stack)
+- State 확장: TeamState에 language 및 framework 항목을 추가하여 개발 환경 명시적 관리.
+- 환경 대응: Java(Spring Boot), React, TypeScript, Next.js 등 다양한 개발 환경에 최적화된 에이전트 및 테스트 환경 구축.
+
+### 3. CI/CD 및 인프라 통합
+- Docker 컨테이너 격리: 에이전트가 생성한 코드를 격리된 도커 환경에서 실행 및 테스트하여 안전성 확보.
+- GitHub 연동: 최종 승인 시 자동으로 GitHub 브랜치 생성 및 Pull Request 작성 수행.
+
+### 4. 제어 및 지능화
+- Human-in-the-Loop (HITL): 주요 의사결정 단계에서 사용자의 승인 및 개입 절차 추가.
+- RAG 기반 문맥 유지: 전체 코드베이스 히스토리를 벡터 DB에 색인하여 일관된 컨텍스트 유지 및 할루시네이션 방지.
+
+## License
+
 본 프로젝트는 MIT License에 따라 배포됩니다. 자세한 내용은 LICENSE 파일을 참조하십시오.
