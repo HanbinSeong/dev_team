@@ -2,3 +2,6 @@
 .venv
 __pycache__/
 *.pyc
+eval_workspace/*
+test_work/*
+test_work_v2/*
