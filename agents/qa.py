@@ -9,6 +9,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from state import TeamState
 from utils.prompt_loader import load_role_prompt
+from utils.sandbox import run_tests_in_sandbox
 
 class QATestCode(BaseModel):
     test_code: str = Field(description="pytest로 실행 가능한 완벽한 테스트 파이썬 코드")
@@ -50,41 +51,21 @@ def qa_node(state: TeamState) -> dict:
         f.write(test_content)
 
     print(f"   ✔️ 테스트 코드 생성 완료: {test_file_path}")
-    print(" [QA] 터미널에서 pytest를 실행하여 코드를 검증합니다...")
+    print(" [QA] Docker Sandbox 환경에서 코드를 검증...")
 
-    # 파이썬 subprocess를 사용하여 실제로 pytest 실행
-    try:
-        result = subprocess.run(
-            ["pytest", "test_ai_qa.py", "-v"],
-            cwd=workspace_dir,
-            capture_output=True,
-            text=True,
-            timeout=30,  # 무한 루프 방지
-        )
-
-        # exit code가 0이면 테스트 통과, 아니면 실패
-        if result.returncode == 0:
-            qa_passed = True
-            test_report = (
-                "✅ [QA Success] All tests passed.\n\n" + result.stdout
-            )
-            print("   -> ✅ QA 테스트 통과!")
-        else:
-            qa_passed = False
-            test_report = "[QA Failed] Errors occurred during testing. Please check the logs below and fix the code.\n\n" + result.stdout + "\n" + result.stderr
-            print("   -> ❌ QA 테스트 실패")
-
-    except subprocess.TimeoutExpired:
+    # Sandbox(Docker) 테스트 실행
+    exit_code, output_logs = run_tests_in_sandbox(workspace_dir, timeout_seconds=30)
+    if exit_code == 0:
+        qa_passed = True
+        test_report = " [QA Success] All tests passed in sandbox.\n\n" + output_logs
+        print("   -> ✅ QA 테스트 통과")
+    else:
         qa_passed = False
-        test_report = "❌ [QA Failed] Test execution exceeded 30 seconds and was terminated. (Possible infinite loop or deadlock)"
-        print("   -> ❌ 타임아웃 에러 발생")
-    except Exception as e:
-        qa_passed = False
-        test_report = f"❌ [QA System Error] Unknown error occurred during test execution: {str(e)}"
-        print(f"   -> ❌ 시스템 에러 발생: {e}")
+        test_report = " [QA Failed] Errors occurred during testing in sandbox.\n\n" + output_logs
+        print("   -> ❌ QA 테스트 실패")
 
     print("\n" + "=" * 50)
-    print("📊 [QA 리포트 요약]")
+    print(" [QA 리포트 요약]")
     print(test_report[:500] + ("..." if len(test_report) > 500 else ""))
     print("=" * 50 + "\n")
 
