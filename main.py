@@ -13,7 +13,7 @@ from agents.supervisor import supervisor_node
 
 
 def build_graph():
-    """LangGraph 워크플로우를 조립하고 컴파일하는 함수입니다."""
+    """LangGraph builder"""
     workflow = StateGraph(TeamState)
 
     # 1. 노드 추가
@@ -39,7 +39,7 @@ def build_graph():
 
 
 def main():
-    print("=== 🤖 AI 개발 에이전트 시스템 시작 ===\n")
+    print("=== AI 개발 에이전트 시스템 시작 ===\n")
 
     # [1단계] 작업 디렉토리 설정
     target_dir = input("작업을 진행할 프로젝트 디렉토리 이름을 입력하세요: ").strip()
@@ -75,14 +75,14 @@ def main():
                 print("⚠️ 작업 지시가 비어있습니다. 다시 입력해주세요.")
                 continue
 
-            print("\n🚀 [시스템] AI 개발팀이 작업을 시작합니다...\n")
+            print("\n [시스템] AI 개발팀이 작업을 시작합니다...\n")
 
             # --- 작업 시작 시 로그 파일에 헤더 기록 ---
             with open(log_file_path, "a", encoding="utf-8") as log_file:
                 now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 log_file.write(f"\n\n{'='*60}\n")
-                log_file.write(f"🚀 [새로운 작업 시작] {now_str}\n")
-                log_file.write(f"🗣️ 사용자 지시: {user_request}\n")
+                log_file.write(f" [새로운 작업 시작] {now_str}\n")
+                log_file.write(f" 사용자 지시: {user_request}\n")
                 log_file.write(f"{'='*60}\n\n")
 
             # 상태(State) 초기화: 사용자의 지시와 작업할 폴더 경로를 함께 주입합니다.
@@ -108,27 +108,27 @@ def main():
                         log_file.write(f"--- [{node_name.upper()}] 단계 실행 결과 ---\n")
                         
                         if node_name == "pm":
-                            log_file.write(f"📄 작성된 지시서:\n{state_update.get('issue_description', '')}\n")
+                            log_file.write(f" 작성된 지시서:\n{state_update.get('issue_description', '')}\n")
                         
                         elif node_name == "developer":
-                            log_file.write("💾 생성/수정된 파일 목록:\n")
+                            log_file.write(" 생성/수정된 파일 목록:\n")
                             for file_path in state_update.get('current_code', {}).keys():
                                 log_file.write(f"  - {file_path}\n")
-                            log_file.write(f"🔄 현재 코드 수정(반려) 횟수: {state_update.get('revision_count', 0)}\n")
+                            log_file.write(f" 현재 코드 수정(반려) 횟수: {state_update.get('revision_count', 0)}\n")
                         
                         elif node_name == "qa":
                             passed = "✅ 통과" if state_update.get('qa_passed') else "❌ 실패"
-                            log_file.write(f"🧪 QA 결과: {passed}\n")
-                            log_file.write(f"📊 상세 에러/테스트 리포트:\n{state_update.get('test_report', '')}\n")
+                            log_file.write(f" QA 결과: {passed}\n")
+                            log_file.write(f" 상세 에러/테스트 리포트:\n{state_update.get('test_report', '')}\n")
                         
                         elif node_name == "supervisor":
                             approved = "✅ 병합 승인" if state_update.get('is_approved') else "❌ 반려 (수정 요청)"
-                            log_file.write(f"🕵️‍♂️ 최종 검수 결과: {approved}\n")
-                            log_file.write(f"💬 리뷰 코멘트:\n{state_update.get('review_feedback', '')}\n")
+                            log_file.write(f" 최종 검수 결과: {approved}\n")
+                            log_file.write(f" 리뷰 코멘트:\n{state_update.get('review_feedback', '')}\n")
                             
                         log_file.write("\n")
 
-            print(f"\n🎉 [시스템] 작업 완료! 상세 로그는 '{log_file_path}'에서 확인하실 수 있습니다.")
+            print(f"\n [시스템] 작업 완료! 상세 로그는 '{log_file_path}'에서 확인하실 수 있습니다.")
 
         elif choice == "2" or choice == "작업종료":
             print("\n에이전트를 종료합니다. 수고하셨습니다!")
