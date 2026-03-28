@@ -1,83 +1,126 @@
-# AI 에이전트 아키텍처 로드맵
-**최종 목표**: 사용자의 자연어 지시를 분석하여 최적의 워크플로우를 스스로 결정하고, 기존 코드베이스 분석, 부분 수정(Span Edit), 자가 테스트 및 디버깅, 외부 시스템(GitHub) 연동까지 완벽하게 수행하는 비동기식 다중 에이전트 오케스트레이션 환경(Streamlit UI 기반) 구축.
+# AI Development Team Agent - 로드맵
+
+**프로젝트 개요**  
+비동기 자율 AI 에이전트들로 구성된 소프트웨어 개발 파이프라인.  
+요구사항 분석 → 설계 → 코드 작성(Span Edit) → 테스트 → 리뷰 → 자가 치유까지 **전 과정을 자동화**하고,  
+개발자는 “AI를 오케스트레이션”하는 역할에 집중할 수 있는 환경을 목표로 합니다.
+
+**현재 브랜치 상태 (dynamic-routing, 2026.3.28)**  
+- `workflow.yaml` 기반 동적 라우팅 구현 중  
+- `.ai/` 디렉토리 + `utils/prompt_loader.py` + `state.py` + `routers.py` + `sandbox.py` (Docker 기반)  
+- LangGraph + LangSmith 평가 하네스 적용  
+- QA 에이전트: subprocess → Docker sandbox 전환 완료
+
+---
+
+## 전체 설계 원칙 (2026년 최신 트렌드 반영)
+- **Orchestration**: LangGraph (StateGraph + conditional edge + checkpoint + subgraph)
+- **Context & Skill Layer**: Harness Engineering (AGENTS.md + 역할별 SKILL.md + create_agent factory)
+- **Core Philosophy**: Prompt Engineering → Harness Engineering으로 진화 (토큰 60~75% 절감, 선언형 유지보수)
+
+---
+
+## [Phase 0] 준비 (Completed)
+- [x] LangGraph 기본 파이프라인 구축 (PM → Dev → QA)
+- [x] Docker sandbox + evaluate.py (LangSmith)
+- [x] workflow.yaml 도입 (AGENTS.yaml → workflow.yaml 리네임 완료)
+- [x] state.py 확장 및 routers.py
+
+**Success Criteria**: `main.py` 실행 시 YAML 기반 동적 그래프 조립 성공
+
+---
 
 ## [Phase 1] 동적 라우팅 및 의도 분석(Triage) 체계 확립 (현재 진행 단계)
-#### 사실(Fact)
-현재 파이프라인은 일직선(PM -> Dev -> QA)으로 고정되어 있어 단순 코드 수정 요청 시에도 기획부터 다시 시작하는 비효율이 존재하며, 설정이 파이썬 코드 내에 하드코딩되어 있습니다.
+**Fact**: 기존 파이프라인이 일직선으로 고정되어 있어 단순 수정 요청에도 PM부터 다시 시작하는 비효율 발생.
 
-#### 작업 계획
+**작업 계획**
+1. Triage 노드 완성 (의도 분류: new_feature, code_fix, bugfix, refactor, documentation, research)
+2. `state.py`에 `triage_destination`, `confidence_score` 추가
+3. `utils/graph_builder.py`로 YAML → LangGraph 동적 조립 완성
+4. PoC 데모: `tests/triage_test.py` 작성
 
-1. **전역 설정 로더 구축**: `utils/config.py`를 신설하여 `workflow.yaml` 파일을 시스템 가동 시 1회만 메모리에 적재하도록 구현합니다.
+**Success Criteria**
+- 사용자 지시 1개 입력 → 정확한 triage_destination 결정 (LangSmith 평가 4.5/5.0 이상)
+- confidence < 0.7 시 Supervisor 또는 Human-in-the-loop 전환
 
-2. **Triage(안내데스크) 노드 신설**: 워크플로우의 시작점(`START`)에 사용자의 의도를 분석하는 노드를 추가합니다.
+**예상 기간**: 3~5일 (현재 70% 완료)
 
-  - 의도 분류 예시: 신규 기능(PM으로 전달), 단순 코드 수정(Dev로 전달), 아키텍처 문의(Supervisor로 전달).
+---
 
-3. **상태(`state.py`) 확장**: Triage 노드가 결정한 다음 목적지를 담을 `triage_destination` 필드를 추가합니다.
+## [Phase 2] Harness Engineering + agents/ 리팩토링 (최우선 다음 단계)
+**Fact**: 현재 agents/ 폴더가 flat 구조이며 prompt가 하드코딩/단일 파일에 집중되어 있음.
 
-4. **동적 그래프 조립**: `utils/graph_builder.py`를 작성하여 YAML 설정에 따라 노드와 조건부 엣지가 동적으로 연결되도록 `main.py`를 리팩토링합니다.
+**작업 계획**
+1. **Harness Engineering 도입**
+   - Root에 `AGENTS.md` 작성 (선언형 가이드)
+   - `skills/` 디렉토리 신설 (pm/, architect/, coder/, reviewer/, self-healing/)
+   - 각 skill 폴더에 `SKILL.md` (YAML frontmatter + step-by-step) 작성
+2. **agents/ 리팩토링**
+   - `agents/harness_loader.py` (기존 prompt_loader.py 업그레이드)
+   - `agents/factory.py` (`create_agent(role, skills=...)` factory 추가)
+   - 각 노드(`pm.py`, `dev.py`, `qa.py` 등)를 **thin wrapper**로 변경 (10줄 이하)
+3. Prompt decoupling: `.ai/roles/`, `.ai/conventions/`, `.ai/rules/` 활용
+4. Self-Healing 서브루프: QA 내부에서 최대 3회 retry + exponential backoff
 
-## [Phase 2] 하네스 엔지니어링 및 자가 치유(Self-Healing) 고도화
-#### 사실(Fact)
-현재 에이전트들은 단일 마크다운 파일로 지시를 받으며, QA 단계에서 오류가 발생하면 즉시 메인 흐름으로 제어권을 반환합니다.
+**Success Criteria**
+- `create_agent("coder", skills=["span-edit"])` 호출로 에이전트 생성 가능
+- Skill Loader가 SKILL.md를 on-demand로 로드하여 토큰 사용량 60% 이상 감소
 
-#### 작업 계획
+**예상 기간**: 5~7일
 
-1. **프롬프트 파편화 (Decoupling)**: 에이전트 역할(`.ai/roles/`), 코딩 컨벤션(`.ai/conventions/`), 테스트 규격(`.ai/rules/`)을 별도 파일로 분리하고 런타임에 조합하여 사용하도록 `prompt_loader.py`를 개선합니다.
-
-2. **실행 계획(Plan) 아티팩트화**: PM 노드의 결과를 단순 자연어가 아닌, 기계적 검증이 가능한 수용 기준(Acceptance Criteria)이 포함된 엄격한 JSON 스키마로 강제(`with_structured_output`)합니다.
-
-3. **QA 자가 치유 서브루프 구축**: QA 노드 내부에서 테스트 실패 시 Dev 노드로 돌아가기 전에, 샌드박스 내부에서 에러 로그를 분석하고 코드를 스스로 패치하는 내부 순환 루프(최대 N회 제한)를 구현합니다.
+---
 
 ## [Phase 3] 에이전트 도구화(Tooling) 및 서브그래프 확장
-#### 사실(Fact)
-Dev 에이전트는 코드 수정 시 전체 파일을 다시 작성하며, PM 에이전트는 사내 문서나 기존 코드 모듈을 검색할 권한이 없습니다.
+**Fact**: Dev 에이전트는 전체 파일 재작성, PM은 컨텍스트 검색 불가.
 
-#### 작업 계획
+**작업 계획**
+1. **Skill 구현**
+   - Coder: Span-Edit Skill (tree-sitter 또는 diff 기반)
+   - PM: Context Retrieval Skill (RAG + workspace/GitHub)
+   - QA: Sandbox Execution & Parsing Skill (structured error JSON)
+2. PM Subgraph 구축 (Context Retriever → Architect → Lead PM)
+3. GitHub API 연동 (githubkit) → 자동 PR 생성
+4. Supervisor에 Skill-aware routing 강화
 
-1. **Span-based Editing 도구 통합**: Dev 에이전트에게 전체 코드를 재작성하는 대신, Git Diff 형태나 Search/Replace Block 형태로 기존 코드의 특정 라인만 수정할 수 있는 커스텀 툴(Tool)을 바인딩합니다.
+**Success Criteria**
+- Span-Edit만으로 코드 수정 성공률 90% 이상
+- PM Subgraph가 독립적으로 실행 가능
 
-2. **PM 서브그래프(Sub-graph) 구축**: 단일 PM 노드를 다중 에이전트로 세분화합니다.
+**예상 기간**: 7~10일
 
-    - Context Retriever: 사내 문서, 공식 Docs, GitHub, Workspace를 검색.
-
-    - Architect: 기존 모듈 재사용 가능성 검토.
-
-    - Lead PM: 취합된 컨텍스트를 바탕으로 최종 실행 계획서 작성.
-
-3. **GitHub API 연동**: Supervisor 또는 별도 에이전트에게 PyGithub 기반 도구를 제공하여 최종 승인된 코드를 PR(Pull Request)로 자동 발행하도록 구현합니다.
-
-#### Skill 도입 전략
-1. **Dev 에이전트**: `Span-Edit Skill` (부분 수정 스킬)
-
-- **현재 문제**: 코드 한 줄을 고치기 위해 전체 파일을 다시 작성하여 토큰 낭비 및 환각(Hallucination) 발생.
-
-- **Skill 도입**: 기존 파일의 특정 라인(Line)이나 함수(Block)만 정확히 타겟팅하여 교체하는 능력을 부여합니다. 내부적으로는 Git Diff 포맷이나 AST(추상 구문 트리) 파싱을 안전하게 수행하는 로직이 캡슐화되어 있습니다.
-
-2. **PM 에이전트**: `Context Retrieval Skill` (문맥 탐색 스킬)
-
-- **현재 문제**: 주어진 사용자의 프롬프트만 보고 상상해서 기획서를 작성함.
-
-- **Skill 도입**: 요구사항을 받으면 1) 작업 폴더 내의 기존 코드를 읽어오고, 2) 사내 API 명세서나 코딩 컨벤션 문서를 벡터 DB에서 검색하여(RAG) 읽어오는 능력을 부여합니다.
-
-3. **QA 에이전트**: `Sandbox Execution & Parsing Skill` (안전 실행 및 분석 스킬)
-
-- **현재 문제**: 테스트가 실패하면 에러 로그 전체를 텍스트로만 뱉어냄.
-
-- **Skill 도입**: 에러가 발생했을 때 멈추지 않고, 파이썬 Traceback 로그를 추적하여 "어떤 파일의 몇 번째 줄에서 어떤 타입 에러가 났는지" 구조화된 데이터(JSON)로 추출하는 디버깅 특화 스킬을 부여합니다.
+---
 
 ## [Phase 4] 프로덕션 UI/UX 및 비동기 처리 환경 통합
-#### 사실(Fact)
-터미널(CLI) 환경에서는 Human-in-the-loop(HITL) 개입이나 다중 에이전트의 병렬 진행 상황을 시각적으로 파악하기 어렵습니다.
+**Fact**: 현재 CLI 중심으로 HITL과 병렬 처리가 제한적.
 
-#### 작업 계획
+**작업 계획**
+1. Streamlit 대시보드 (demo mode / team mode)
+2. Celery + Redis를 활용한 완전 비동기 task queue
+3. LangGraph Persistence (PostgreSQL checkpoint) + `astream_events`
+4. HITL 지점 명확화 (`interrupt_before` + UI 승인 버튼)
 
-1. **Streamlit 대시보드 개발**:
+**Success Criteria**
+- 다중 사용자 요청 동시 처리
+- 워크플로우 재시작/복구 가능
 
-    - 좌측: 사용자 작업 지시 및 피드백을 위한 챗봇 인터페이스.
+**예상 기간**: 7~10일
 
-    - 우측: 에이전트 작업 리스트 렌더링, 현재 실행 중인 노드와 상태(`State`)의 스트리밍 데이터 시각화 패널.
+---
 
-2. **비동기(Async) 다중 작업 체계 적용**: LangGraph의 `astream_events` 및 `ainvoke`를 활용하여 여러 사용자의 요청이나 분할된 태스크를 블로킹 없이 동시에 백그라운드에서 처리하도록 엔진을 고도화합니다.
+## [Phase 5] 확장성 및 멀티-스택 지원 (Future)
+- Multi-language/framework 지원 (Python → TS, Go, Java)
+- Vector DB (PGVector) + 장기 메모리 RAG
+- GitHub App 연동 (실제 repo에 PR 자동 생성)
+- Multi-repo / Organization-level 에이전트 팀
 
-3. **Human-in-the-loop(HITL) 통합**: 명세서 작성 완료 직후나 운영 반영 직전 등 주요 분기점에서 LangGraph의 `interrupt_before` 기능을 활용해 워크플로우를 일시 정지하고, UI를 통해 사용자의 명시적 승인이나 피드백을 받도록 로직을 추가합니다.
+---
+
+## Success Metrics (프로젝트 완료 기준)
+- 10개 이상의 실제 GitHub Issue를 80% 이상 자동 해결
+- 평균 LLM 토큰 비용 30% 이하 절감 (Harness + Span-Edit + Caching)
+- LangSmith 평가 점수 4.5/5.0 이상
+- Human-in-the-loop 개입률 20% 이하
+
+## 위험 요소 & 대안
+- LLM 비용 폭발 → Skill on-demand + Prompt Caching + max_retry 제한
+- 환각 → Structured Output (Pydantic v2 strict) + Self-Healing loop
