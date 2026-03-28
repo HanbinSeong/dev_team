@@ -1,4 +1,4 @@
-# .ai/AGENTS.yaml
+# .ai/workflow.yaml
 
 version: "1.0"
 start_node: "pm"  # 그래프의 시작점

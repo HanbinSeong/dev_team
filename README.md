@@ -77,7 +77,7 @@ python main.py
 - `evaluate.py`: LangSmith로 AI 에이전트 평가 하네스 구축
 
 ### 20260328
-- `.ai/AGENTS.yaml` 구성: LangGraph에 사용되는 전역 config 설정
+- `.ai/workflow.yaml` 구성: LangGraph에 사용되는 전역 config 설정
 - "langchain 라이브러리에서 `creat_agent` 를 지원하는데, langgraph로 직접 agent들을 구현해야할까?"에 대한 의문발생.
 
     #### `create_agent`와 `LangGraph + State`의 차이
@@ -102,7 +102,8 @@ python main.py
     - **캡슐화된 `Skill` 할당**: 데이터 검증, 예외 처리, 재시도 로직이 캡슐화된 'Skill'을 에이전트에게 할당하여 에이전트의 행동 반경이 제한되고 예측 가능해져 응답의 정확성과 신뢰성이 크게 상승
     - **agent 통제 및 제어**: `create_agents`로 생성된 agent가 자율적으로 request에 따라 동작을 하는 것이 아닌, 사용자의 의도와 범위 내에서 동작하도록 처리
     => 결국엔 agent가 할루시네이션에 빠지지 않게 하기위해선 또 하나의 langgraph를 만드는 것과 다를바없나?
-- 위 의문에 대한 배경은 다양한 상황에서의 `input_request`(ex. "A함수를 직접 구현한건 비효율적이야. 동일한 기능을 하는 B 라이브러리를 사용해."의 경우, pm부터 시작하는건 매우 비효율적), 나아가 `gpt-codex`처럼 AI 에이전트가 스스로 프로그램을 개발할 수 있는 환경이 될 수 있나? 에 대해서 충족시키지 못했기 때문임.
+- 위 의문에 대한 배경은 다양한 상황에서의 `input_request`(ex. "A함수를 직접 구현한건 비효율적이야. 동일한 기능을 하는 B 라이브러리를 사용해."의 경우, pm부터 시작하는건 매우 비효율적), 나아가 `gpt-codex`처럼 AI 에이전트가 스스로 프로그램을 개발할 수 있는 환경을 구축할 수 있나? 에 대해서 충족시키지 못했기 때문임.
+- 
 
 ## License
 
