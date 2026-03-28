@@ -1,33 +1,21 @@
 # AI Development Team Agent
 
-본 프로젝트는 비동기적으로 동작하는 자율적인 AI 에이전트들로 구성된 소프트웨어 개발 파이프라인을 구축하는 것을 목적으로 합니다. 사용자의 요구사항 분석부터 코드 작성, 테스트, 그리고 최종 리뷰까지의 전 과정을 자동화하여 개발 업무의 효율성을 극대화합니다.
+본 프로젝트는 비동기적으로 동작하는 자율 AI 에이전트들로 구성된 소프트웨어 개발 파이프라인입니다.  
+요구사항 분석부터 코드 작성, 테스트, 리뷰까지 전 과정을 자동화하여 개발 생산성과 품질을 향상시키는 것을 목표로 합니다.
 
 ## Project Purpose
 
-전통적인 소프트웨어 개발 프로세스에서의 의사결정 및 구현 단계를 AI 에이전트 간의 협업 시스템으로 대체합니다. 각 에이전트는 독립적인 페르소나와 책임을 가지며, 단순한 코드 생성을 넘어 실행 결과를 바탕으로 오류를 스스로 수정하는 자가 치유(Self-Healing) 메커니즘을 통해 완성도 높은 결과물을 산출합니다.
+AI 시대의 개발자는 단순 구현자가 아니라, AI를 효과적으로 통제하고 오케스트레이션하는 역할을 수행합니다.  
+본 프로젝트는 이러한 역량을 강화하기 위해 에이전트 기반 개발 환경과 워크플로우를 설계하고 실험하는 것을 목표로 합니다.
 
-## Project Structure
-
-프로젝트의 디렉토리 구조는 에이전트의 역할과 상태 관리, 라우팅 로직을 명확히 분리하여 모듈화되어 있습니다.
-```
-.
-├── agents/
-│   ├── pm.py           # 기획자: 요구사항 분석 및 작업 지시서(Markdown) 작성
-│   ├── dev.py          # 개발자: 지시서를 기반으로 실제 소스 코드 및 파일 생성/수정
-│   ├── qa.py           # 테스터: 단위 테스트(pytest 등) 코드 작성 및 실행
-│   └── supervisor.py   # 총괄감독: 코드 품질, 아키텍처, 기획 부합 여부 최종 리뷰 및 승인
-├── routers.py          # 노드 간 조건부 전환(분기)을 제어하는 라우팅 로직
-├── state.py            # LangGraph에서 공유되는 전역 상태(State) 데이터 구조 정의
-├── main.py             # 시스템 진입점, LangGraph 워크플로우 조립 및 사용자 인터랙션 루프
-├── requirements.txt    # 프로젝트 구동에 필요한 패키지 목록
-└── .env                # 환경 변수 (OpenAI API Key 등)
-```
+전통적인 개발 프로세스의 의사결정 및 구현 단계를 AI 협업 시스템으로 대체하고, 
+실행 기반 피드백 루프를 통해 지속적으로 결과를 개선하는 구조를 탐구합니다.
 
 ## Architecture & Workflow
 
 본 시스템은 LangGraph 기반의 상태 그래프(State Graph) 구조로 동작합니다. 4개의 핵심 에이전트 노드가 순환하며 점진적 개선 과정을 거칩니다.
 
-<img width="2816" height="1536" alt="Gemini_Generated_Image_n8wxtnn8wxtnn8wx" src="https://github.com/user-attachments/assets/ce2af858-8dea-4381-b0f7-2e1afad52eea" />
+<img width="2816" height="1536" alt="AI 에이전트 시퀀스 다이어그램" src="https://github.com/user-attachments/assets/ce2af858-8dea-4381-b0f7-2e1afad52eea" />
 
 1. PM Node (Analysis): 사용자의 요구사항을 분석하여 기술 스택, 파일 구조, 핵심 로직이 포함된 작업 지시서를 생성합니다. 기존 코드베이스가 존재하는 경우 이를 분석하여 변경 사항을 기획합니다.
 2. Developer Node (Implementation): PM의 지시서와 피드백을 바탕으로 코드를 작성합니다. 신규 생성뿐만 아니라 기존 파일의 수정 및 유지보수를 수행합니다.
@@ -39,7 +27,7 @@
 - Core Framework: LangGraph, LangChain
 - LLM: OpenAI
 - Data Validation: Pydantic
-- Testing: pytest
+- Testing: pytest, Docker
 - Language Support: Python, `Java, JavaScript/TypeScript (확장 예정)`
 
 ## Usage
@@ -79,6 +67,42 @@ python main.py
 ### 4. 제어 및 지능화
 - Human-in-the-Loop (HITL): 주요 의사결정 단계에서 사용자의 승인 및 개입 절차 추가.
 - RAG 기반 문맥 유지: 전체 코드베이스 히스토리를 벡터 DB에 색인하여 일관된 컨텍스트 유지 및 할루시네이션 방지.
+
+## Current Progress & Discussion
+
+### 20260327
+- 각 노드에 하드코딩된 Prompt를 추후 동적으로 제어하기 위해 전면 리팩토링 -> 프롬프트들은 `.ai/` 디렉토리에서 관리
+- `utils/` 에 `prompt_loader.py` 추가
+- `utils/` 에 `sandbox.py` 추가 (qa노드: Docker기반 sandbox환경에서 pytest 실행)
+- `evaluate.py`: LangSmith로 AI 에이전트 평가 하네스 구축
+
+### 20260328
+- `.ai/AGENTS.yaml` 구성: LangGraph에 사용되는 전역 config 설정
+- "langchain 라이브러리에서 `creat_agent` 를 지원하는데, langgraph로 직접 agent들을 구현해야할까?"에 대한 의문발생.
+
+    #### `create_agent`와 `LangGraph + State`의 차이
+    - `create_agent` (LangChain의 내장 에이전트)
+      - 블랙박스(Black-box) 구조
+      - 내부 `ReAct(Reasoning and Acting)` 루프, 에이전트가 언제 어떤 도구를 쓸지, 몇 번 재시도할지 LLM 스스로 결정
+      - Single agent 구조
+    - `LangGraph + State` (현재 방식)
+      - 화이트박스(White-box) 구조
+      - YAML 파일과 그래프 엣지를 통해 명시적인 업무 흐름을 개발자 직접 통제
+    
+    #### 각 노드 `create_agent` 할당 장점 및 단점
+    1. **장점**
+    - 복잡한 도구 사용 위임: 각 에이전트에게 `웹검색`, `DB조회`, `코드실행`, `샌드박스` 등 도구들을 연결하면 LangGraph 단위에서 각 Tool을 분기처리할 필요없이 노드에서 알아서 도구 사용
+    - 관심사 분리: 메인 오케스트레이션은 비즈니스 로지만 관리, 각 노드는 자신만의 문제해결 방식 집중
+    1. **단점**
+    - Token & Latency 증가
+    - 통제 불가능성
+    - State 연결 복잡성
+    
+    #### 단점을 극복하기 위한 방법
+    - **캡슐화된 `Skill` 할당**: 데이터 검증, 예외 처리, 재시도 로직이 캡슐화된 'Skill'을 에이전트에게 할당하여 에이전트의 행동 반경이 제한되고 예측 가능해져 응답의 정확성과 신뢰성이 크게 상승
+    - **agent 통제 및 제어**: `create_agents`로 생성된 agent가 자율적으로 request에 따라 동작을 하는 것이 아닌, 사용자의 의도와 범위 내에서 동작하도록 처리
+    => 결국엔 agent가 할루시네이션에 빠지지 않게 하기위해선 또 하나의 langgraph를 만드는 것과 다를바없나?
+- 위 의문에 대한 배경은 다양한 상황에서의 `input_request`(ex. "A함수를 직접 구현한건 비효율적이야. 동일한 기능을 하는 B 라이브러리를 사용해."의 경우, pm부터 시작하는건 매우 비효율적), 나아가 `gpt-codex`처럼 AI 에이전트가 스스로 프로그램을 개발할 수 있는 환경이 될 수 있나? 에 대해서 충족시키지 못했기 때문임.
 
 ## License
 
