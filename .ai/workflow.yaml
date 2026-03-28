@@ -1,0 +1,53 @@
+# .ai/workflow.yaml
+
+version: "1.0"
+start_node: "pm"  # 그래프의 시작점
+
+agents:
+  pm:
+    role: "Product Manager"
+    prompt_file: ".ai/roles/pm.md"
+    llm:
+      provider: "openai"
+      model: "gpt-5-nano"
+      temperature: 0.2
+    transitions:
+      type: "direct"
+      next: "dev"
+
+  dev:
+    role: "Developer"
+    prompt_file: ".ai/roles/dev.md"
+    llm:
+      provider: "openai"
+      model: "gpt-5-nano"
+      temperature: 0.0
+    transitions:
+      type: "direct"
+      next: "qa"
+
+  qa:
+    role: "Quality Assurance Engineer"
+    prompt_file: ".ai/roles/qa.md"
+    llm:
+      provider: "openai"
+      model: "gpt-5-nano"
+      temperature: 0.0
+    transitions:
+      type: "conditional"
+      condition_field: "qa_passed"  # State의 어떤 필드를 보고 판단할 것인가
+      on_true: "supervisor"         # 통과 시
+      on_false: "dev"               # 실패 시
+
+  supervisor:
+    role: "Project Supervisor"
+    prompt_file: ".ai/roles/supervisor.md"
+    llm:
+      provider: "openai"
+      model: "gpt-5-nano"
+      temperature: 0.2
+    transitions:
+      type: "conditional"
+      condition_field: "is_approved"
+      on_true: "__end__"            # LangGraph의 END 노드
+      on_false: "pm"                # 전면 재검토 시 PM에게 반려
