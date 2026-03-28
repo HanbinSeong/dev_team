@@ -110,7 +110,7 @@ def main():
                         if node_name == "pm":
                             log_file.write(f" 작성된 지시서:\n{state_update.get('issue_description', '')}\n")
                         
-                        elif node_name == "developer":
+                        elif node_name == "dev":
                             log_file.write(" 생성/수정된 파일 목록:\n")
                             for file_path in state_update.get('current_code', {}).keys():
                                 log_file.write(f"  - {file_path}\n")
